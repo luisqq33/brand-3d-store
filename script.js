@@ -1,253 +1,334 @@
 import * as THREE from "three";
-import { GLTFLoader } from
-    "https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/loaders/GLTFLoader.js";
+
+import {
+    GLTFLoader
+} from "https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/loaders/GLTFLoader.js";
 
 
 /* =====================================================
-   ESCENA 3D
+   CONTENEDOR 3D
 ===================================================== */
 
-const contenedor = document.getElementById(
-    "product-3d-container"
-);
+const contenedor =
+    document.getElementById("product-3d-container");
 
 
-/* =====================================================
-   ESCENA
-===================================================== */
+if (!contenedor) {
 
-const escena = new THREE.Scene();
-
-escena.background = new THREE.Color(0x050505);
-
-
-/* =====================================================
-   CÁMARA
-===================================================== */
-
-const camara = new THREE.PerspectiveCamera(
-    45,
-    contenedor.clientWidth /
-    contenedor.clientHeight,
-    0.1,
-    100
-);
-
-camara.position.set(0, 0, 6);
-
-
-/* =====================================================
-   RENDERIZADOR
-===================================================== */
-
-const renderizador = new THREE.WebGLRenderer({
-    antialias: true,
-    alpha: true
-});
-
-renderizador.setPixelRatio(
-    Math.min(window.devicePixelRatio, 2)
-);
-
-renderizador.setSize(
-    contenedor.clientWidth,
-    contenedor.clientHeight
-);
-
-contenedor.innerHTML = "";
-
-contenedor.appendChild(
-    renderizador.domElement
-);
-
-
-/* =====================================================
-   LUCES
-===================================================== */
-
-const luzPrincipal =
-    new THREE.DirectionalLight(
-        0xffffff,
-        4
+    console.error(
+        "No existe el contenedor 3D."
     );
 
-luzPrincipal.position.set(
-    3,
-    4,
-    5
-);
-
-escena.add(luzPrincipal);
+} else {
 
 
-const luzRelleno =
-    new THREE.DirectionalLight(
-        0xffffff,
-        2
+    /* =================================================
+       ESCENA
+    ================================================= */
+
+    const escena =
+        new THREE.Scene();
+
+
+    /* =================================================
+       CÁMARA
+    ================================================= */
+
+    const camara =
+        new THREE.PerspectiveCamera(
+            45,
+            contenedor.clientWidth /
+            contenedor.clientHeight,
+            0.1,
+            100
+        );
+
+
+    camara.position.set(
+        0,
+        0,
+        6
     );
 
-luzRelleno.position.set(
-    -4,
-    1,
-    2
-);
 
-escena.add(luzRelleno);
+    /* =================================================
+       RENDERIZADOR
+    ================================================= */
+
+    const renderizador =
+        new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true
+        });
 
 
-const luzAmbiente =
-    new THREE.AmbientLight(
-        0xffffff,
-        1
+    renderizador.setPixelRatio(
+        Math.min(
+            window.devicePixelRatio,
+            2
+        )
     );
 
-escena.add(luzAmbiente);
+
+    renderizador.setSize(
+        contenedor.clientWidth,
+        contenedor.clientHeight
+    );
 
 
-/* =====================================================
-   CAMISETA 3D
-===================================================== */
-
-const cargador = new GLTFLoader();
-
-let producto = null;
+    renderizador.outputColorSpace =
+        THREE.SRGBColorSpace;
 
 
-cargador.load(
-    "./camiseta.glb",
+    contenedor.innerHTML = "";
 
-    (modelo) => {
 
-        producto = modelo.scene;
+    contenedor.appendChild(
+        renderizador.domElement
+    );
 
-        producto.scale.set(
-            2,
-            2,
+
+    /* =================================================
+       LUCES
+    ================================================= */
+
+    const luzPrincipal =
+        new THREE.DirectionalLight(
+            0xffffff,
+            4
+        );
+
+
+    luzPrincipal.position.set(
+        3,
+        4,
+        5
+    );
+
+
+    escena.add(
+        luzPrincipal
+    );
+
+
+    const luzSecundaria =
+        new THREE.DirectionalLight(
+            0xffffff,
             2
         );
 
-        producto.position.set(
-            0,
-            -1.2,
-            0
+
+    luzSecundaria.position.set(
+        -4,
+        2,
+        3
+    );
+
+
+    escena.add(
+        luzSecundaria
+    );
+
+
+    const luzAmbiente =
+        new THREE.AmbientLight(
+            0xffffff,
+            1.5
         );
 
-        escena.add(producto);
 
-    },
+    escena.add(
+        luzAmbiente
+    );
 
-    undefined,
 
-    (error) => {
+    /* =================================================
+       CAMISETA 3D
+    ================================================= */
 
-        console.error(
-            "No se pudo cargar la camiseta 3D:",
-            error
+    const cargador =
+        new GLTFLoader();
+
+
+    let camiseta = null;
+
+
+    cargador.load(
+
+        "./jersey%20low.glb",
+
+        function (modelo) {
+
+            camiseta =
+                modelo.scene;
+
+
+            camiseta.scale.set(
+                2,
+                2,
+                2
+            );
+
+
+            camiseta.position.set(
+                0,
+                -1.2,
+                0
+            );
+
+
+            escena.add(
+                camiseta
+            );
+
+
+            console.log(
+                "CAMISETA CARGADA"
+            );
+
+        },
+
+        undefined,
+
+        function (error) {
+
+            console.error(
+                "ERROR AL CARGAR EL GLB:",
+                error
+            );
+
+        }
+
+    );
+
+
+    /* =================================================
+       MOUSE
+    ================================================= */
+
+    let objetivoX = 0;
+
+    let objetivoY = 0;
+
+
+    contenedor.addEventListener(
+        "mousemove",
+        function (evento) {
+
+            const rect =
+                contenedor.getBoundingClientRect();
+
+
+            const x =
+                evento.clientX -
+                rect.left;
+
+
+            const y =
+                evento.clientY -
+                rect.top;
+
+
+            objetivoY =
+                (
+                    x /
+                    rect.width -
+                    0.5
+                ) * 0.8;
+
+
+            objetivoX =
+                (
+                    y /
+                    rect.height -
+                    0.5
+                ) * 0.5;
+
+        }
+    );
+
+
+    contenedor.addEventListener(
+        "mouseleave",
+        function () {
+
+            objetivoX = 0;
+
+            objetivoY = 0;
+
+        }
+    );
+
+
+    /* =================================================
+       ANIMACIÓN
+    ================================================= */
+
+    function animar() {
+
+        requestAnimationFrame(
+            animar
+        );
+
+
+        if (camiseta) {
+
+            camiseta.rotation.y +=
+                (
+                    objetivoY -
+                    camiseta.rotation.y
+                ) * 0.05;
+
+
+            camiseta.rotation.x +=
+                (
+                    -objetivoX -
+                    camiseta.rotation.x
+                ) * 0.05;
+
+        }
+
+
+        renderizador.render(
+            escena,
+            camara
         );
 
     }
-);
 
 
-/* =====================================================
-   POSICIÓN
-===================================================== */
-
-producto.position.set(
-    0,
-    0,
-    0
-);
+    animar();
 
 
-/* =====================================================
-   MOVIMIENTO DEL MOUSE
-===================================================== */
+    /* =================================================
+       RESPONSIVE
+    ================================================= */
 
-let objetivoX = 0;
-let objetivoY = 0;
+    window.addEventListener(
+        "resize",
+        function () {
 
-
-contenedor.addEventListener(
-    "mousemove",
-    (evento) => {
-
-        const rect =
-            contenedor.getBoundingClientRect();
-
-        const x =
-            evento.clientX - rect.left;
-
-        const y =
-            evento.clientY - rect.top;
+            const ancho =
+                contenedor.clientWidth;
 
 
-        objetivoY =
-            ((x / rect.width) - 0.5) * 0.8;
-
-        objetivoX =
-            ((y / rect.height) - 0.5) * 0.5;
-
-    }
-);
+            const alto =
+                contenedor.clientHeight;
 
 
-/* =====================================================
-   ANIMACIÓN
-===================================================== */
-
-function animar() {
-
-    requestAnimationFrame(animar);
+            camara.aspect =
+                ancho / alto;
 
 
-  if (producto) {
-
-    producto.rotation.y +=
-        (objetivoY - producto.rotation.y) * 0.05;
-
-    producto.rotation.x +=
-        (-objetivoX - producto.rotation.x) * 0.05;
-
-}
+            camara.updateProjectionMatrix();
 
 
-    renderizador.render(
-        escena,
-        camara
+            renderizador.setSize(
+                ancho,
+                alto
+            );
+
+        }
     );
 
 }
-
-
-animar();
-
-
-/* =====================================================
-   RESPONSIVE
-===================================================== */
-
-window.addEventListener(
-    "resize",
-    () => {
-
-        const ancho =
-            contenedor.clientWidth;
-
-        const alto =
-            contenedor.clientHeight;
-
-
-        camara.aspect =
-            ancho / alto;
-
-        camara.updateProjectionMatrix();
-
-
-        renderizador.setSize(
-            ancho,
-            alto
-        );
-
-    }
-);
