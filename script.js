@@ -1,194 +1,233 @@
-/* =====================================================
-   CARRITO
-===================================================== */
-
-let carrito = [];
-
-const contadorCarrito = document.getElementById("cart-count");
+import * as THREE from "three";
 
 
 /* =====================================================
-   ACTUALIZAR CONTADOR
+   ESCENA 3D
 ===================================================== */
 
-function actualizarContador() {
-
-    contadorCarrito.textContent = carrito.length;
-
-}
-
-
-/* =====================================================
-   ANIMACIÓN DEL PRODUCTO
-===================================================== */
-
-const producto3D = document.querySelector(
-    ".product-placeholder"
-);
-
-const contenedor3D = document.getElementById(
+const contenedor = document.getElementById(
     "product-3d-container"
 );
 
 
-contenedor3D.addEventListener("mousemove", (evento) => {
+/* =====================================================
+   ESCENA
+===================================================== */
 
-    const rect = contenedor3D.getBoundingClientRect();
+const escena = new THREE.Scene();
 
-    const x =
-        evento.clientX - rect.left;
-
-    const y =
-        evento.clientY - rect.top;
-
-
-    const centroX = rect.width / 2;
-    const centroY = rect.height / 2;
-
-
-    const movimientoX =
-        (x - centroX) / centroX;
-
-    const movimientoY =
-        (y - centroY) / centroY;
-
-
-    const rotacionY =
-        movimientoX * 15;
-
-    const rotacionX =
-        movimientoY * -10;
-
-
-    producto3D.style.transform = `
-        perspective(800px)
-        rotateY(${rotacionY}deg)
-        rotateX(${rotacionX}deg)
-        scale(1.03)
-    `;
-
-});
+escena.background = new THREE.Color(0x050505);
 
 
 /* =====================================================
-   RESTAURAR PRODUCTO
+   CÁMARA
 ===================================================== */
 
-contenedor3D.addEventListener("mouseleave", () => {
+const camara = new THREE.PerspectiveCamera(
+    45,
+    contenedor.clientWidth /
+    contenedor.clientHeight,
+    0.1,
+    100
+);
 
-    producto3D.style.transform = `
-        perspective(800px)
-        rotateY(-15deg)
-        rotateX(0deg)
-        scale(1)
-    `;
-
-});
+camara.position.set(0, 0, 6);
 
 
 /* =====================================================
-   BOTÓN EXPLORAR
+   RENDERIZADOR
 ===================================================== */
 
-const botonExplorar =
-    document.querySelector(".explore-button");
-
-
-botonExplorar.addEventListener("click", () => {
-
-    document
-        .getElementById("shop")
-        .scrollIntoView({
-            behavior: "smooth"
-        });
-
+const renderizador = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true
 });
+
+renderizador.setPixelRatio(
+    Math.min(window.devicePixelRatio, 2)
+);
+
+renderizador.setSize(
+    contenedor.clientWidth,
+    contenedor.clientHeight
+);
+
+contenedor.innerHTML = "";
+
+contenedor.appendChild(
+    renderizador.domElement
+);
 
 
 /* =====================================================
-   ANIMACIÓN AL HACER SCROLL
+   LUCES
 ===================================================== */
 
-const elementosAnimados =
-    document.querySelectorAll(
-        ".product, .about, .shop h2"
+const luzPrincipal =
+    new THREE.DirectionalLight(
+        0xffffff,
+        4
+    );
+
+luzPrincipal.position.set(
+    3,
+    4,
+    5
+);
+
+escena.add(luzPrincipal);
+
+
+const luzRelleno =
+    new THREE.DirectionalLight(
+        0xffffff,
+        2
+    );
+
+luzRelleno.position.set(
+    -4,
+    1,
+    2
+);
+
+escena.add(luzRelleno);
+
+
+const luzAmbiente =
+    new THREE.AmbientLight(
+        0xffffff,
+        1
+    );
+
+escena.add(luzAmbiente);
+
+
+/* =====================================================
+   OBJETO 3D TEMPORAL
+===================================================== */
+
+const geometria =
+    new THREE.BoxGeometry(
+        2,
+        2.5,
+        1
     );
 
 
-const observador =
-    new IntersectionObserver(
-        (elementos) => {
-
-            elementos.forEach((elemento) => {
-
-                if (elemento.isIntersecting) {
-
-                    elemento.target.style.opacity = "1";
-
-                    elemento.target.style.transform =
-                        "translateY(0)";
-
-                }
-
-            });
-
-        },
-        {
-            threshold: 0.15
-        }
-    );
-
-
-elementosAnimados.forEach((elemento) => {
-
-    elemento.style.opacity = "0";
-
-    elemento.style.transform =
-        "translateY(40px)";
-
-    elemento.style.transition =
-        "opacity 0.8s ease, transform 0.8s ease";
-
-    observador.observe(elemento);
-
-});
-
-
-/* =====================================================
-   PRODUCTOS
-===================================================== */
-
-const productos =
-    document.querySelectorAll(".product");
-
-
-productos.forEach((producto, indice) => {
-
-    producto.addEventListener("click", () => {
-
-        carrito.push({
-            id: indice + 1
-        });
-
-        actualizarContador();
-
-        producto.style.transform =
-            "scale(0.97)";
-
-        setTimeout(() => {
-
-            producto.style.transform =
-                "scale(1)";
-
-        }, 150);
-
+const material =
+    new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.25,
+        metalness: 0.15
     });
 
-});
+
+const producto =
+    new THREE.Mesh(
+        geometria,
+        material
+    );
+
+
+escena.add(producto);
 
 
 /* =====================================================
-   INICIAR
+   POSICIÓN
 ===================================================== */
 
-actualizarContador();
+producto.position.set(
+    0,
+    0,
+    0
+);
+
+
+/* =====================================================
+   MOVIMIENTO DEL MOUSE
+===================================================== */
+
+let objetivoX = 0;
+let objetivoY = 0;
+
+
+contenedor.addEventListener(
+    "mousemove",
+    (evento) => {
+
+        const rect =
+            contenedor.getBoundingClientRect();
+
+        const x =
+            evento.clientX - rect.left;
+
+        const y =
+            evento.clientY - rect.top;
+
+
+        objetivoY =
+            ((x / rect.width) - 0.5) * 0.8;
+
+        objetivoX =
+            ((y / rect.height) - 0.5) * 0.5;
+
+    }
+);
+
+
+/* =====================================================
+   ANIMACIÓN
+===================================================== */
+
+function animar() {
+
+    requestAnimationFrame(animar);
+
+
+    producto.rotation.y +=
+        (objetivoY - producto.rotation.y) * 0.05;
+
+
+    producto.rotation.x +=
+        (-objetivoX - producto.rotation.x) * 0.05;
+
+
+    renderizador.render(
+        escena,
+        camara
+    );
+
+}
+
+
+animar();
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        const ancho =
+            contenedor.clientWidth;
+
+        const alto =
+            contenedor.clientHeight;
+
+
+        camara.aspect =
+            ancho / alto;
+
+        camara.updateProjectionMatrix();
+
+
+        renderizador.setSize(
+            ancho,
+            alto
+        );
+
+    }
+);
