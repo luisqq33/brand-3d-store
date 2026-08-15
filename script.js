@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { GLTFLoader } from
+    "https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/loaders/GLTFLoader.js";
 
 
 /* =====================================================
@@ -103,33 +105,48 @@ escena.add(luzAmbiente);
 
 
 /* =====================================================
-   OBJETO 3D TEMPORAL
+   CAMISETA 3D
 ===================================================== */
 
-const geometria =
-    new THREE.BoxGeometry(
-        2,
-        2.5,
-        1
-    );
+const cargador = new GLTFLoader();
+
+let producto = null;
 
 
-const material =
-    new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 0.25,
-        metalness: 0.15
-    });
+cargador.load(
+    "./camiseta.glb",
 
+    (modelo) => {
 
-const producto =
-    new THREE.Mesh(
-        geometria,
-        material
-    );
+        producto = modelo.scene;
 
+        producto.scale.set(
+            2,
+            2,
+            2
+        );
 
-escena.add(producto);
+        producto.position.set(
+            0,
+            -1.2,
+            0
+        );
+
+        escena.add(producto);
+
+    },
+
+    undefined,
+
+    (error) => {
+
+        console.error(
+            "No se pudo cargar la camiseta 3D:",
+            error
+        );
+
+    }
+);
 
 
 /* =====================================================
@@ -184,12 +201,15 @@ function animar() {
     requestAnimationFrame(animar);
 
 
+  if (producto) {
+
     producto.rotation.y +=
         (objetivoY - producto.rotation.y) * 0.05;
 
-
     producto.rotation.x +=
         (-objetivoX - producto.rotation.x) * 0.05;
+
+}
 
 
     renderizador.render(
